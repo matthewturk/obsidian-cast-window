@@ -93,7 +93,7 @@ function getInlinedCss(): string {
 					css += rule.cssText + "\n";
 				}
 			}
-		} catch (e) {
+		} catch {
 			// Some stylesheets might be cross-origin or inaccessible
 			continue;
 		}

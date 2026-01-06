@@ -1,18 +1,19 @@
 import { App, Modal, Setting } from "obsidian";
+import { ChromecastDevice } from "../types";
 
 export class DiscoveryModal extends Modal {
 	private statusEl: HTMLDivElement;
 	private progressEl: HTMLProgressElement;
 	private deviceListEl: HTMLDivElement;
 	private onCancel: () => void;
-	private onSelect: (device: any) => void;
+	private onSelect: (device: ChromecastDevice) => void;
 	private onStop?: () => void;
 	private discoveredDevices: Set<string> = new Set();
 	private isSelectionMade: boolean = false;
 
 	constructor(
 		app: App,
-		onSelect: (device: any) => void,
+		onSelect: (device: ChromecastDevice) => void,
 		onCancel: () => void,
 		onStop?: () => void
 	) {
@@ -26,13 +27,12 @@ export class DiscoveryModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		contentEl.createEl("h2", { text: "Cast to Chromecast" });
+		contentEl.createEl("h2", { text: "Cast to device" });
 
 		const progressContainer = contentEl.createDiv({
 			cls: "cast-progress-container",
 		});
 		this.progressEl = progressContainer.createEl("progress");
-		this.progressEl.style.width = "100%";
 		this.progressEl.value = 0;
 		this.progressEl.max = 60;
 
@@ -42,8 +42,6 @@ export class DiscoveryModal extends Modal {
 		this.deviceListEl = contentEl.createDiv({ cls: "cast-device-list" });
 
 		const footer = contentEl.createDiv({ cls: "cast-modal-footer" });
-		footer.style.display = "flex";
-		footer.style.justifyContent = "space-between";
 
 		new Setting(footer).addButton((btn) =>
 			btn.setButtonText("Cancel").onClick(() => {
@@ -54,7 +52,7 @@ export class DiscoveryModal extends Modal {
 		if (this.onStop) {
 			new Setting(footer).addButton((btn) =>
 				btn
-					.setButtonText("Stop Casting")
+					.setButtonText("Stop casting")
 					.setWarning()
 					.onClick(() => {
 						this.isSelectionMade = true;
@@ -78,12 +76,12 @@ export class DiscoveryModal extends Modal {
 		}
 	}
 
-	addDevice(device: any) {
+	addDevice(device: ChromecastDevice) {
 		if (this.discoveredDevices.has(device.host)) return;
 		this.discoveredDevices.add(device.host);
 
 		let displayName =
-			device.friendlyName || device.name || "Unknown Device";
+			device.friendlyName || device.name || "Unknown device";
 
 		// Simple cleanup for UUIDs/long hex strings in names
 		displayName = displayName
@@ -95,9 +93,9 @@ export class DiscoveryModal extends Modal {
 			.replace(/\s*[-._]\s*$/, "")
 			.trim();
 
-		if (!displayName) displayName = device.name || "Unknown Device";
+		if (!displayName) displayName = device.name || "Unknown device";
 
-		const setting = new Setting(this.deviceListEl)
+		new Setting(this.deviceListEl)
 			.setName(displayName)
 			.setDesc(device.host)
 			.addButton((btn) =>

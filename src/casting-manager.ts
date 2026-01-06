@@ -2,16 +2,19 @@ import { App, Notice } from "obsidian";
 // @ts-ignore
 import chromecasts from "chromecasts";
 import { DiscoveryModal } from "./ui/discovery-modal";
+import { ChromecastDevice, ChromecastList } from "./types";
 
 export class CastingManager {
-	private list: any;
-	private currentDevice: any = null;
+	private list: ChromecastList;
+	private currentDevice: ChromecastDevice | null = null;
 	private debug: boolean = false;
 	private app: App;
 
 	constructor(app: App) {
 		this.app = app;
-		this.list = chromecasts();
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+		const listBase = chromecasts();
+		this.list = listBase as ChromecastList;
 	}
 
 	setDebug(debug: boolean) {
@@ -23,18 +26,18 @@ export class CastingManager {
 		onDeviceFound?: (ip: string) => void,
 		onStop?: () => void
 	) {
-		if (this.debug) console.log("Starting Chromecast discovery...");
+		if (this.debug) console.debug("Starting Chromecast discovery...");
 
 		let iterations = 0;
 		const maxIterations = 60;
 
 		const modal = new DiscoveryModal(
 			this.app,
-			(device: any) => {
+			(device: ChromecastDevice) => {
 				// User selected a device
 				const displayName = device.friendlyName || device.name;
 				if (this.debug)
-					console.log("User selected device:", displayName);
+					console.debug("User selected device:", displayName);
 				clearInterval(interval);
 				this.list.removeListener("update", onUpdate);
 
@@ -50,19 +53,19 @@ export class CastingManager {
 						title: "Obsidian Note",
 						contentType: "text/html",
 					},
-					(err: any) => {
+					(err) => {
 						if (err) {
 							console.error("Casting error:", err);
 							new Notice("Casting error: " + err.message);
 						} else {
-							console.log("Casting started successfully");
+							console.debug("Casting started successfully");
 						}
 					}
 				);
 			},
 			() => {
 				// User cancelled
-				if (this.debug) console.log("Discovery cancelled by user");
+				if (this.debug) console.debug("Discovery cancelled by user");
 				clearInterval(interval);
 				this.list.removeListener("update", onUpdate);
 			},
@@ -75,12 +78,14 @@ export class CastingManager {
 
 		// Show existing players if any
 		if (this.list.players && this.list.players.length > 0) {
-			this.list.players.forEach((p: any) => modal.addDevice(p));
+			this.list.players.forEach((p: ChromecastDevice) =>
+				modal.addDevice(p)
+			);
 		}
 
-		const onUpdate = (device: any) => {
+		const onUpdate = (device: ChromecastDevice) => {
 			const displayName = device.friendlyName || device.name;
-			if (this.debug) console.log("Discovered device:", displayName);
+			if (this.debug) console.debug("Discovered device:", displayName);
 			modal.addDevice(device);
 		};
 

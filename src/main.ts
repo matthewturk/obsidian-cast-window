@@ -39,15 +39,21 @@ export default class CastPlugin extends Plugin {
 			"cast",
 			"Cast active note",
 			() => {
-				this.castActiveNote();
+				this.castActiveNote().catch((e) => {
+					console.error("Failed to cast active note", e);
+				});
 			}
 		);
 
 		// Add command
 		this.addCommand({
 			id: "cast-active-note",
-			name: "Cast active note to Chromecast",
-			callback: () => this.castActiveNote(),
+			name: "Cast active note to device",
+			callback: () => {
+				this.castActiveNote().catch((e) => {
+					console.error("Failed to cast active note", e);
+				});
+			},
 		});
 
 		this.addCommand({
@@ -60,13 +66,13 @@ export default class CastPlugin extends Plugin {
 
 		this.addSettingTab(new CastSettingTab(this.app, this));
 
-		console.log("Obsidian Cast Window loaded");
+		console.debug("Obsidian Cast Window loaded");
 	}
 
 	onunload() {
 		this.server.stop();
 		this.castingManager.stopCasting();
-		console.log("Obsidian Cast Window unloaded");
+		console.debug("Obsidian Cast Window unloaded");
 	}
 
 	private updateRibbonIcon() {
@@ -93,10 +99,11 @@ export default class CastPlugin extends Plugin {
 	}
 
 	async loadSettings() {
+		const rawData: unknown = await this.loadData();
 		this.settings = Object.assign(
 			{},
 			DEFAULT_SETTINGS,
-			await this.loadData()
+			rawData
 		);
 	}
 
@@ -135,7 +142,7 @@ export default class CastPlugin extends Plugin {
 			);
 			this.server.updateHtml(html);
 
-			new Notice("Searching for Chromecast...");
+			new Notice("Searching for device...");
 			this.castingManager.startCasting(
 				`${serverUrl}/?token=${token}`,
 				(ip) => {

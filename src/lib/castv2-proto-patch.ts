@@ -57,9 +57,11 @@ function createMessage(typeName: string) {
 		// We use 'any' here because protobufjs methods require specific types
 		// that 'unknown' cannot satisfy without complex casting.
 		serialize: function (data: unknown) {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			return type
-				.encode(type.fromObject(data as { [k: string]: any }))
+				.encode(
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					type.fromObject(data as { [k: string]: any })
+				)
 				.finish();
 		},
 		parse: function (data: unknown) {

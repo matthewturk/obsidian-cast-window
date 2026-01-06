@@ -32,12 +32,12 @@ export class CastingServer {
 
 	start(port: number = 8080) {
 		this.port = port;
-		this.server = http.createServer(async (req, res) => {
+		this.server = http.createServer((req, res) => {
 			const url = new URL(req.url || "", `http://localhost:${this.port}`);
 			const providedToken = url.searchParams.get("token");
 
 			if (this.debug) {
-				console.log(
+				console.debug(
 					`[Server] Request: ${req.method} ${req.url} from ${req.socket.remoteAddress}`
 				);
 			}
@@ -83,19 +83,22 @@ export class CastingServer {
 						decodeURIComponent(filePath)
 					);
 					if (abstractFile instanceof TFile) {
-						try {
-							const data =
-								await this.app.vault.adapter.readBinary(
-									abstractFile.path
-								);
-							res.writeHead(200, {
-								"Content-Type": this.getContentType(filePath),
+						this.app.vault.adapter
+							.readBinary(abstractFile.path)
+							.then((data) => {
+								res.writeHead(200, {
+									"Content-Type": this.getContentType(
+										filePath
+									),
+								});
+								res.end(new Uint8Array(data));
+							})
+							.catch((e) => {
+								console.error("Failed to read image", e);
+								res.writeHead(500);
+								res.end();
 							});
-							res.end(Buffer.from(data));
-							return;
-						} catch (e) {
-							console.error("Failed to read image", e);
-						}
+						return;
 					}
 				}
 			}

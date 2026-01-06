@@ -1,0 +1,8 @@
+
+> obsidian-sample-plugin@1.0.0 build
+> tsc -noEmit -skipLibCheck && node esbuild.config.mjs production
+
+Patching proto in /home/mturk/dev/obsidian-cast-window/node_modules/castv2
+Patching proto in /home/mturk/dev/obsidian-cast-window/node_modules/castv2/lib
+Patching proto in /home/mturk/dev/obsidian-cast-window/node_modules/castv2/lib
+Copied manifest and styles to dist/
