@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-cast-window",
-	"name": "Obsidian Cast Window",
+	"id": "cast-window",
+	"name": "Cast Window",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "Casts the active Markdown note to a Chromecast device on your local network.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
+	"author": "Matthew Turk",
+	"authorUrl": "https://matthewturk.github.io/",
 	"isDesktopOnly": true
 }

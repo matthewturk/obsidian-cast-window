@@ -1,7 +1,8 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "cast-window",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"author": "Matthew Turk",
+	"description": "Casts the active Markdown note to a Chromecast device on your local network.",
 	"main": "main.js",
 	"type": "module",
 	"scripts": {
