@@ -88,9 +88,10 @@ export class DiscoveryModal extends Modal {
 		// Simple cleanup for UUIDs/long hex strings in names
 		displayName = displayName
 			.replace(
-				/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+				/[0-9a-f]{8}[-:]?[0-9a-f]{4}[-:]?[0-9a-f]{4}[-:]?[0-9a-f]{4}[-:]?[0-9a-f]{12}/gi,
 				""
 			)
+			.replace(/[0-9a-f]{32}/gi, "") // Match 32-char hex strings without dashes
 			.replace(/\s*[-._]\s*$/, "")
 			.trim();
 

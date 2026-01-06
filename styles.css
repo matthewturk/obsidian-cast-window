@@ -30,10 +30,25 @@
 
 .cast-device-list {
 	border-top: 1px solid var(--background-modifier-border);
-	max-height: 300px;
+	height: 300px;
 	overflow-y: auto;
 	margin: 20px 0;
 	padding: 10px 5px;
+	display: flex;
+	flex-direction: column;
+}
+
+/* Empty state message */
+.cast-device-list:empty::before {
+	content: "Searching for Chromecasts...";
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	width: 100%;
+	color: var(--text-muted);
+	font-style: italic;
+	text-align: center;
 }
 
 .cast-device-list .setting-item {

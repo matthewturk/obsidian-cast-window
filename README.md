@@ -30,7 +30,7 @@ This plugin starts a local HTTP server to host the rendered content. To protect 
 ### Manual Installation
 
 Identify your vault's plugin folder (e.g., `VaultFolder/.obsidian/plugins/obsidian-cast-window/`).
-Copy the following files from a [Release](https://github.com/your-username/obsidian-cast-window/releases) into that folder:
+Copy the following files from a [Release](https://github.com/matthewturk/obsidian-cast-window/releases) into that folder:
 
 1. `main.js`
 2. `manifest.json`
