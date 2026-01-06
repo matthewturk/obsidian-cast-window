@@ -12,8 +12,8 @@ export class CastingManager {
 
 	constructor(app: App) {
 		this.app = app;
-		const listBase = (chromecasts as any)() as ChromecastList;
-		this.list = listBase;
+		const chromecastsFunc = chromecasts as unknown as () => ChromecastList;
+		this.list = chromecastsFunc();
 	}
 
 	setDebug(debug: boolean) {
