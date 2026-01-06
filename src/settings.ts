@@ -1,36 +1,57 @@
-import {App, PluginSettingTab, Setting} from "obsidian";
-import MyPlugin from "./main";
+import { App, PluginSettingTab, Setting } from "obsidian";
+import CastPlugin from "./main";
 
-export interface MyPluginSettings {
-	mySetting: string;
+export interface CastPluginSettings {
+	port: number;
+	debug: boolean;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
+export const DEFAULT_SETTINGS: CastPluginSettings = {
+	port: 8080,
+	debug: false,
+};
 
-export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+export class CastSettingTab extends PluginSettingTab {
+	plugin: CastPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: CastPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
 
 	display(): void {
-		const {containerEl} = this;
+		const { containerEl } = this;
 
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Settings #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
-				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
+			.setName("Server port")
+			.setDesc("Port for the local HTTP server")
+			.addText((text) =>
+				text
+					.setPlaceholder("8080")
+					.setValue(this.plugin.settings.port.toString())
+					.onChange(async (value) => {
+						const port = parseInt(value);
+						if (!isNaN(port)) {
+							this.plugin.settings.port = port;
+							await this.plugin.saveSettings();
+						}
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Debug logging")
+			.setDesc(
+				"Enable detailed logging for discovery and server requests"
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.debug)
+					.onChange(async (value) => {
+						this.plugin.settings.debug = value;
+						await this.plugin.saveSettings();
+					})
+			);
 	}
 }

@@ -1,8 +1,19 @@
-/*
+/* Obsidian Cast Window Styles */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.markdown-rendered {
+	padding: 20px;
+}
 
-If your plugin does not need CSS, delete this file.
+/* Ensure images don't overflow the TV screen */
+.markdown-rendered img {
+	max-width: 100%;
+	height: auto;
+}
 
-*/
+.is-casting {
+	color: var(--text-accent);
+}
+
+.is-casting svg {
+	color: var(--text-accent);
+}

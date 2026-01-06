@@ -1,99 +1,153 @@
-import {App, Editor, MarkdownView, Modal, Notice, Plugin} from 'obsidian';
-import {DEFAULT_SETTINGS, MyPluginSettings, SampleSettingTab} from "./settings";
+import { Notice, Plugin, MarkdownView, setIcon } from "obsidian";
+import { CastingServer } from "./casting-server";
+import { renderNoteToHtml } from "./renderer";
+import { CastingManager } from "./casting-manager";
+import { getInternalIp } from "./utils/ip-utils";
+import {
+	CastPluginSettings,
+	DEFAULT_SETTINGS,
+	CastSettingTab,
+} from "./settings";
 
-// Remember to rename these classes and interfaces!
-
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class CastPlugin extends Plugin {
+	settings: CastPluginSettings;
+	server: CastingServer;
+	castingManager: CastingManager;
+	private ribbonIconEl: HTMLElement;
+	private isCasting: boolean = false;
 
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+		this.server = new CastingServer(this.app);
+		this.castingManager = new CastingManager(this.app);
+
+		this.server.setDebug(this.settings.debug);
+		this.castingManager.setDebug(this.settings.debug);
+
+		// Start the server
+		const ip = getInternalIp();
+		if (!ip) {
+			new Notice(
+				"Could not detect internal IP address. Casting might not work."
+			);
+		}
+		this.server.start(this.settings.port);
+
+		// Add ribbon icon
+		this.ribbonIconEl = this.addRibbonIcon(
+			"cast",
+			"Cast active note",
+			() => {
+				this.castActiveNote();
+			}
+		);
+
+		// Add command
+		this.addCommand({
+			id: "cast-active-note",
+			name: "Cast active note to Chromecast",
+			callback: () => this.castActiveNote(),
 		});
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
-
-		// This adds a simple command that can be triggered anywhere
 		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
+			id: "stop-casting",
+			name: "Stop casting",
 			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				editor.replaceSelection('Sample editor command');
-			}
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-				return false;
-			}
+				this.stopCasting();
+			},
 		});
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new CastSettingTab(this.app, this));
 
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			new Notice("Click");
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
-
+		console.log("Obsidian Cast Window loaded");
 	}
 
 	onunload() {
+		this.server.stop();
+		this.castingManager.stopCasting();
+		console.log("Obsidian Cast Window unloaded");
+	}
+
+	private updateRibbonIcon() {
+		if (this.isCasting) {
+			setIcon(this.ribbonIconEl, "monitor-play");
+			this.ribbonIconEl.addClass("is-casting");
+			this.ribbonIconEl.setAttribute(
+				"aria-label",
+				"Casting active (Click to cast again)"
+			);
+		} else {
+			setIcon(this.ribbonIconEl, "cast");
+			this.ribbonIconEl.removeClass("is-casting");
+			this.ribbonIconEl.setAttribute("aria-label", "Cast active note");
+		}
+	}
+
+	private stopCasting() {
+		this.castingManager.stopCasting();
+		this.server.setAllowedIp(null);
+		this.isCasting = false;
+		this.updateRibbonIcon();
+		new Notice("Casting stopped");
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<MyPluginSettings>);
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			await this.loadData()
+		);
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
-	}
-}
-
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Woah!');
+		this.server.setDebug(this.settings.debug);
+		this.castingManager.setDebug(this.settings.debug);
+		// Restart server with new port if needed (simplified: just restart)
+		this.server.stop();
+		this.server.start(this.settings.port);
 	}
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
+	async castActiveNote() {
+		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+		if (!activeView || !activeView.file) {
+			new Notice("No active Markdown note to cast");
+			return;
+		}
+
+		const ip = getInternalIp();
+		if (!ip) {
+			new Notice("Internal IP not found. Cannot cast.");
+			return;
+		}
+
+		const serverUrl = `http://${ip}:${this.settings.port}`;
+
+		try {
+			new Notice("Preparing content...");
+			const token = this.server.getSessionToken();
+			const html = await renderNoteToHtml(
+				this.app,
+				activeView.file,
+				serverUrl,
+				token
+			);
+			this.server.updateHtml(html);
+
+			new Notice("Searching for Chromecast...");
+			this.castingManager.startCasting(
+				`${serverUrl}/?token=${token}`,
+				(ip) => {
+					this.server.setAllowedIp(ip);
+					this.isCasting = true;
+					this.updateRibbonIcon();
+					new Notice(`Casting to device at ${ip}`);
+				}
+			);
+		} catch (e) {
+			console.error("Failed to cast note", e);
+			new Notice("Failed to cast note. See console for details.");
+		}
 	}
 }
