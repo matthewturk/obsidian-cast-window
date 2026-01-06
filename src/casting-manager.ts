@@ -1,5 +1,5 @@
 import { App, Notice } from "obsidian";
-// @ts-ignore
+// @ts-expect-error - no types for chromecasts
 import chromecasts from "chromecasts";
 import { DiscoveryModal } from "./ui/discovery-modal";
 import { ChromecastDevice, ChromecastList } from "./types";
@@ -12,9 +12,8 @@ export class CastingManager {
 
 	constructor(app: App) {
 		this.app = app;
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-		const listBase = chromecasts();
-		this.list = listBase as ChromecastList;
+		const listBase = (chromecasts as any)() as ChromecastList;
+		this.list = listBase;
 	}
 
 	setDebug(debug: boolean) {
@@ -50,7 +49,7 @@ export class CastingManager {
 				device.play(
 					url,
 					{
-						title: "Obsidian Note",
+						title: "Obsidian note",
 						contentType: "text/html",
 					},
 					(err) => {
@@ -73,7 +72,7 @@ export class CastingManager {
 		);
 
 		modal.open();
-		modal.updateStatus("Searching for Chromecasts...");
+		modal.updateStatus("Searching for devices...");
 		modal.setProgress(0, maxIterations);
 
 		// Show existing players if any

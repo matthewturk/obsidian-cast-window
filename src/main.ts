@@ -29,7 +29,7 @@ export default class CastPlugin extends Plugin {
 		const ip = getInternalIp();
 		if (!ip) {
 			new Notice(
-				"Could not detect internal IP address. Casting might not work."
+				"Could not detect internal IP address; casting might not work."
 			);
 		}
 		this.server.start(this.settings.port);
@@ -66,23 +66,20 @@ export default class CastPlugin extends Plugin {
 
 		this.addSettingTab(new CastSettingTab(this.app, this));
 
-		console.debug("Obsidian Cast Window loaded");
+		console.debug("Obsidian cast window loaded");
 	}
 
 	onunload() {
 		this.server.stop();
 		this.castingManager.stopCasting();
-		console.debug("Obsidian Cast Window unloaded");
+		console.debug("Obsidian cast window unloaded");
 	}
 
 	private updateRibbonIcon() {
 		if (this.isCasting) {
 			setIcon(this.ribbonIconEl, "monitor-play");
 			this.ribbonIconEl.addClass("is-casting");
-			this.ribbonIconEl.setAttribute(
-				"aria-label",
-				"Casting active (Click to cast again)"
-			);
+			this.ribbonIconEl.setAttribute("aria-label", "Casting active");
 		} else {
 			setIcon(this.ribbonIconEl, "cast");
 			this.ribbonIconEl.removeClass("is-casting");
@@ -100,11 +97,7 @@ export default class CastPlugin extends Plugin {
 
 	async loadSettings() {
 		const rawData: unknown = await this.loadData();
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			rawData
-		);
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, rawData);
 	}
 
 	async saveSettings() {
@@ -119,20 +112,20 @@ export default class CastPlugin extends Plugin {
 	async castActiveNote() {
 		const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
 		if (!activeView || !activeView.file) {
-			new Notice("No active Markdown note to cast");
+			new Notice("No active note to cast");
 			return;
 		}
 
 		const ip = getInternalIp();
 		if (!ip) {
-			new Notice("Internal IP not found. Cannot cast.");
+			new Notice("Internal IP address not found; casting aborted");
 			return;
 		}
 
 		const serverUrl = `http://${ip}:${this.settings.port}`;
 
 		try {
-			new Notice("Preparing content...");
+			new Notice("Preparing content");
 			const token = this.server.getSessionToken();
 			const html = await renderNoteToHtml(
 				this.app,
@@ -142,7 +135,7 @@ export default class CastPlugin extends Plugin {
 			);
 			this.server.updateHtml(html);
 
-			new Notice("Searching for device...");
+			new Notice("Searching for device");
 			this.castingManager.startCasting(
 				`${serverUrl}/?token=${token}`,
 				(ip) => {
@@ -155,7 +148,7 @@ export default class CastPlugin extends Plugin {
 			);
 		} catch (e) {
 			console.error("Failed to cast note", e);
-			new Notice("Failed to cast note. See console for details.");
+			new Notice("Failed to cast note; check console for details");
 		}
 	}
 }

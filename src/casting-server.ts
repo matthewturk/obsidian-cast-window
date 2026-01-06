@@ -87,9 +87,8 @@ export class CastingServer {
 							.readBinary(abstractFile.path)
 							.then((data) => {
 								res.writeHead(200, {
-									"Content-Type": this.getContentType(
-										filePath
-									),
+									"Content-Type":
+										this.getContentType(filePath),
 								});
 								res.end(new Uint8Array(data));
 							})
