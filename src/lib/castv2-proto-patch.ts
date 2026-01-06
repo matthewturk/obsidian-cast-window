@@ -58,7 +58,9 @@ function createMessage(typeName: string) {
 		// that 'unknown' cannot satisfy without complex casting.
 		serialize: function (data: unknown) {
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			return type.encode(type.fromObject(data as { [k: string]: any })).finish();
+			return type
+				.encode(type.fromObject(data as { [k: string]: any }))
+				.finish();
 		},
 		parse: function (data: unknown) {
 			return type.decode(data as Uint8Array);

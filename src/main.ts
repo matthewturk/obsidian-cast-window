@@ -143,7 +143,8 @@ export default class CastPlugin extends Plugin {
 					this.isCasting = true;
 					this.updateRibbonIcon();
 					new Notice(`Casting to device at ${ip}`);
-				}
+				},
+				this.isCasting ? () => this.stopCasting() : undefined
 			);
 		} catch (e) {
 			console.error("Failed to cast note", e);

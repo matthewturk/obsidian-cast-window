@@ -17,3 +17,36 @@
 .is-casting svg {
 	color: var(--text-accent);
 }
+
+.cast-progress-container {
+	margin-bottom: 5px;
+}
+
+.cast-discovery-status {
+	font-size: 0.9em;
+	color: var(--text-muted);
+	margin-bottom: 10px;
+}
+
+.cast-device-list {
+	border-top: 1px solid var(--background-modifier-border);
+	max-height: 300px;
+	overflow-y: auto;
+	margin: 20px 0;
+	padding: 10px 5px;
+}
+
+.cast-device-list .setting-item {
+	padding: 12px 10px;
+	border-bottom: 1px solid var(--background-modifier-border-soft);
+}
+
+.cast-device-list .setting-item:last-child {
+	border-bottom: none;
+}
+
+.cast-modal-footer {
+	margin-top: 20px;
+	border-top: 1px solid var(--background-modifier-border);
+	padding-top: 10px;
+}
